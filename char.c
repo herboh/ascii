@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 
 static const char *ASCII_CONTROL_NAMES[] = {
     "NUL", "SOH", "STX", "ETX", "EOT", "ENQ",  "ACK", "BEL", "BS",
@@ -41,20 +42,28 @@ static void print_row(unsigned char c) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc > 2) {
-    fprintf(stderr, "usage: %s [text]\n", argv[0]);
-    return 1;
-  }
-
   printf("%-8s %-5s %-6s %s\n", "symbol", "value", "hex", "binary");
 
   if (argc == 1) {
-    for (int i = 0; i < 128; i++) {
-      print_row((unsigned char)i);
+    if (!isatty(STDIN_FILENO)) {
+      int c;
+
+      while ((c = getchar()) != EOF) {
+        print_row((unsigned char)c);
+      }
+    } else {
+      for (int i = 0; i < 128; i++) {
+        print_row((unsigned char)i);
+      }
     }
   } else {
-    for (int i = 0; argv[1][i] != '\0'; i++) {
-      print_row((unsigned char)argv[1][i]);
+    for (int i = 1; i < argc; i++) {
+      if (i > 1) {
+        print_row((unsigned char)' ');
+      }
+      for (int j = 0; argv[i][j] != '\0'; j++) {
+        print_row((unsigned char)argv[i][j]);
+      }
     }
   }
 
